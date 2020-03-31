@@ -287,7 +287,7 @@ void set_all_single_options(int sudoku[9][9], int pos[9][9][9])
   }
 }
 
-void min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
+int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
 {
   int temprow;
   int tempcol;
@@ -313,6 +313,7 @@ void min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
       }
     }
   }
+  return min;
 }
 
 void cpy_sudoku(int sudoku_dst[9][9], int sudoku_src[9][9])
@@ -359,17 +360,15 @@ void sift_pos(int sudoku[9][9], int pos[9][9][9])
       return;
     }
     int sudoku_cpy[9][9];
-    cpy_sudoku(sudoku_cpy, sudoku);
     int pos_cpy[9][9][9];
+    cpy_sudoku(sudoku_cpy, sudoku);
     cpy_pos(pos_cpy, pos);
-    int nrow;
-    int ncol;
-    int nn;
-    min_nonzero_pos(pos, &nrow, &ncol, &nn);
-    printf("(%d, %d, %d) has least pos\n", nrow, ncol, nn);
+    int nrow, ncol, nn;
+    if (min_nonzero_pos(pos, &nrow, &ncol, &nn) == 10) {
+      return;
+    }
     zero_all_but(pos_cpy, nrow, ncol, nn);
     set_all_single_options(sudoku_cpy, pos_cpy);
-
     sift_pos(sudoku_cpy, pos_cpy);
 
     if (solved(sudoku_cpy)) {
