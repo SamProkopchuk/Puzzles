@@ -411,7 +411,14 @@ void solve_sudoku(int sudoku[9][9], int depth)
   int pos[9][9][9];
   init_poss(sudoku, pos);
 
-  sift_pos(sudoku, pos);  
+  int sudoku_cpy[9][9];
+  cpy_sudoku(sudoku_cpy, sudoku);
+
+  sift_pos(sudoku, pos);
+
+  if (!solved(sudoku)) {
+    cpy_sudoku(sudoku, sudoku_cpy);
+  }
 }
 
 #ifndef __testing
@@ -435,7 +442,7 @@ int main()
          {0, 0, 0, 0, 8, 0, 0, 7, 9}};
 
    int Sudoku2[9][9]={
-{0, 8, 0, 0, 0, 0, 0, 0, 0, },
+{1, 8, 0, 0, 0, 0, 0, 0, 0, },
 {0, 0, 0, 4, 0, 0, 7, 8, 5, },
 {0, 0, 9, 0, 2, 0, 3, 0, 0, },
 {0, 6, 0, 0, 9, 0, 0, 0, 0, },
