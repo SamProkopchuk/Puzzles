@@ -1,89 +1,3 @@
-/*
- * CSC A48 - Exercise 11 - Sudoku Solver
- * 
- * Your goal in this exercise is to practice recursion and
- * to see how a properly written recursive solution can
- * take care of fairly complicated tasks with a few lines
- * of (well thought out) code.
- * 
- * We will be solving Sudoku puzzles. In case you have never
- * solved or seen a Sudoku, you can learn more about them
- * here:
- * 
- * https://en.wikipedia.org/wiki/Sudoku
- * 
- * Your task if to write a function that takes an input
- * Sudoku in the form of a 9x9 array of integers. the
- * array will have a few entries filled with numbers in
- * [1, 9], and the remaining entries set to zero.
- * 
- * For the example in the wiki, the input array will
- * be
- * 
- * 5 3 0 0 7 0 0 0 0
- * 6 0 0 1 9 5 0 0 0
- * 0 9 8 0 0 0 0 6 0
- * 8 0 0 0 6 0 0 0 3
- * 4 0 0 8 0 3 0 0 1
- * 7 0 0 0 2 0 0 0 6
- * 0 6 0 0 0 0 2 8 0 
- * 0 0 0 4 1 9 0 0 5
- * 0 0 0 0 8 0 0 7 9
- * 
- * Your code should find the values that correctly
- * complete the Sudoku. 
- * 
- * As a brief reminder, a correctly solved Sudoku is
- * one in which there are no repeated digits in any
- * row, any column, or any of the 3x3 sub-arrays that
- * make up the large 9x9 grid. Another way to think
- * about it is, every row, column, and 3x3 subgrid
- * uses all of the different digits.
- * 
- * How to solve this?
- * 
- * * RECURSIVELY!
- * 
- * (hint) - Solving a Sudoku with N unknown values
- * may involve trying something, then solving an
- * easier Sudoku problem.
- * 
- * * How to approach this?
- * 
- * - As noted in class:
- *  a) Determine the base case(s)
- *  b) Figure out the recursive case
- *  c) Determine what needs to happen to
- *     the solution for the entire problem
- *     is returned once the recursion hits
- *     the base case(s)
- * 
- * - Conditions on the input Sudoku
- *  - It will have AT LEAST ONE DIGIT in each
- *    3x3 subgrid. Likely there will be several
- *    3x3 subgrids with several digits already
- *    set to some value.
- * 
- * - Conditions on your solution
- *  - It should return a solution if there
- *    exists one.
- *  - If no solution can be found, return the
- *    original input array
- *  - If multiple solutions exist, any one of
- *        them is valid
- * 
- * - Can I use helper functions?
- *  - Yes, by all means!
- * 
- * - Can I add extra libraries?
- *  - No, they won't be needed.
- * 
- * - Can I change the 'print_sudoku()' function?
- *  - Please don't, we may need it for testing!
- * 
- * (c) F. Estrada, March 2019
- */
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -122,12 +36,14 @@ int check_sudoku(int sudoku[9][9])
    * your own helper functions, that's ok!
    * *****/
 
-  int row_counts=0;
-  int col_counts=0;
-  int sub_counts=0;
+  int row_counts;
+  int col_counts;
+  int sub_counts;
   for (int i=1; i<10; i++) {
     // Check rows and columns
     for (int row=0;row<9;row++) {
+      row_counts=0;
+      col_counts=0;
       for (int col=0;col<9;col++) {
         if (sudoku[row][col] == i) {
           row_counts++;
@@ -139,13 +55,12 @@ int check_sudoku(int sudoku[9][9])
       if ((row_counts > 1) || (col_counts > 1)) {
         return 0;
       }
-      row_counts=0;
-      col_counts=0;
     }
 
     // Check all 3x3 subgrids
     for (int sub_row=0; sub_row<3; sub_row++) {
       for (int sub_col=0; sub_col<3; sub_col++) {
+        sub_counts=0;
         for (int row_delta=0; row_delta<3; row_delta++) {
           for (int col_delta=0; col_delta<3; col_delta++) {
             if (sudoku[sub_row*3 + row_delta][sub_col*3 + col_delta] == i) {
@@ -156,7 +71,6 @@ int check_sudoku(int sudoku[9][9])
         if (sub_counts > 1) {
           return 0;
         }
-        sub_counts=0;
       }
     }
   }
@@ -278,10 +192,12 @@ int only_one_num(int pos[9][9][9], int row, int col) {
 void set_all_single_options(int sudoku[9][9], int pos[9][9][9])
 {
   // Sets all entries that can be one number to that number.
+  int num;
   for (int row=0; row<9; row++) {
     for (int col=0; col<9; col++) {
-      if ((sudoku[row][col] == 0) && (only_one_num(pos, row, col) != -1)) {
-        sudoku[row][col] = only_one_num(pos, row, col);
+      num = only_one_num(pos, row, col);
+      if ((sudoku[row][col] == 0) && (num != -1)) {
+        sudoku[row][col] = num;
       }
     }
   }
@@ -289,8 +205,7 @@ void set_all_single_options(int sudoku[9][9], int pos[9][9][9])
 
 int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
 {
-  int temprow;
-  int tempcol;
+  // returns 10 if there is all zeros in pos at that index.
   int tempn;
   int min = 10;
   int count;
@@ -305,8 +220,6 @@ int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
       }
       if ((count < min) && (count > 1)) {
         min = count;
-        temprow=row;
-        tempcol=col;
         *nrow = row;
         *ncol = col;
         *nn = tempn;
@@ -354,11 +267,7 @@ void sift_pos(int sudoku[9][9], int pos[9][9][9])
     return;
   } else if (check_sudoku(sudoku) == 0) {
     return;
-  }
-  if (clear_impos(sudoku, pos) == 0) {
-    if (check_sudoku(sudoku) == 0) {
-      return;
-    }
+  } else if (clear_impos(sudoku, pos) == 0) {
     int sudoku_cpy[9][9];
     int pos_cpy[9][9][9];
     cpy_sudoku(sudoku_cpy, sudoku);
