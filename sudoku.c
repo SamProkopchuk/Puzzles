@@ -25,17 +25,6 @@ int check_sudoku(int sudoku[9][9])
    *  If *ignores* zeros, so you can use it to check
    * that a partial solution is valid
    */
-  
-  /*****
-   * TO DO:
-   * Complete this function
-   *   -- BUT ONLY IF YOU WANT TO!
-   * Our testing script only checks your Sudoku
-   * solution, if you want to solve it without
-   * using this function, or if you want to write
-   * your own helper functions, that's ok!
-   * *****/
-
   int row_counts;
   int col_counts;
   int sub_counts;
@@ -86,16 +75,6 @@ int solved(int sudoku[9][9])
    * It returns 1 if the Sudoku is solved, zero
    * otherwise
    */
-  
-  /*****
-   * TO DO
-   * Complete this function
-   * BUT ONLY IF YOU WANT TO!
-   *   You can solve the Sudoku without using this function,
-   * or you can write a different helper function, whatever
-   * makes more sense to yoU! our checker won't look at this
-   * function, 
-   * ****/
   for (int row=0; row<9; row++) {
     for (int col=0; col<9; col++) {
       if (sudoku[row][col] == 0) {
@@ -123,24 +102,22 @@ void init_poss(int sudoku[9][9], int pos[9][9][9]) {
   }
 }
 
-int set_to_zero(int pos[9][9][9], int n, int row, int col, int chng) {
+void set_to_zero(int pos[9][9][9], int n, int row, int col, int *chng) {
   // Sets row, col, n to 0
   // returns chng + 1 if row, col, n was 1
   if (pos[row][col][n] == 1) {
-      // printf("(%d, %d, %d) is 1\n", row, col, n);
       pos[row][col][n] = 0;
-      chng++;
-      // printf("chng is : %d\n", chng);
+      *chng += 1;
   }
-  return chng;
 }
 
-int clear_common(int pos[9][9][9], int n, int nrow, int ncol, int chng) {
+void clear_common(int pos[9][9][9], int n, int nrow, int ncol, int *chng) {
   // For every number, remove possibility that the same number could
   // be in the same row, column, or cell.
+  n-=1;
   for (int rowcol=0; rowcol<9; rowcol++) {
-    chng = set_to_zero(pos, n, nrow, rowcol, chng);
-    chng = set_to_zero(pos, n, rowcol, ncol, chng);
+    set_to_zero(pos, n, nrow, rowcol, chng);
+    set_to_zero(pos, n, rowcol, ncol, chng);
   }
 
   // Find coordinate of top right of subgrid n lies in.
@@ -149,10 +126,9 @@ int clear_common(int pos[9][9][9], int n, int nrow, int ncol, int chng) {
 
   for (int row_delta=0; row_delta<3; row_delta++) {
     for (int col_delta=0; col_delta<3; col_delta++) {
-      chng = set_to_zero(pos, n, subgridr+row_delta, subgridc+col_delta, chng);
+      set_to_zero(pos, n, subgridr+row_delta, subgridc+col_delta, chng);
     }
   }
-  return chng;
 }
 
 int clear_impos(int sudoku[9][9], int pos[9][9][9]) {
@@ -164,8 +140,7 @@ int clear_impos(int sudoku[9][9], int pos[9][9][9]) {
   for (int row=0; row<9; row++) {
     for (int col=0; col<9; col++) {
       if (sudoku[row][col] != 0) {
-        // printf("(%d, %d) is not zero\n", row, col);
-        chng = clear_common(pos, sudoku[row][col]-1, row, col, chng);
+        clear_common(pos, sudoku[row][col], row, col, &chng);
       }
     }
   }
@@ -254,20 +229,20 @@ void zero_all_but(int pos[9][9][9], int nrow, int ncol, int nn)
   int chng=0;
   for (int n=0; n<9; n++) {
     if (n != nn) {
-      set_to_zero(pos, n, nrow, ncol, chng);
+      set_to_zero(pos, n, nrow, ncol, &chng);
     }
   }
 }
 
-void sift_pos(int sudoku[9][9], int pos[9][9][9])
+void sift_pos(int sudoku[9][9], int pos[9][9][9], int depth)
 {
   // solves sudoku every step by minimizing pos
   // and filling in sudoku based upon minimal pos.
   if (solved(sudoku)) {
     return;
-  } else if (check_sudoku(sudoku) == 0) {
+  } if (check_sudoku(sudoku) == 0) {
     return;
-  } else if (clear_impos(sudoku, pos) == 0) {
+  } if (clear_impos(sudoku, pos) == 0) {
     int sudoku_cpy[9][9];
     int pos_cpy[9][9][9];
     cpy_sudoku(sudoku_cpy, sudoku);
@@ -278,19 +253,19 @@ void sift_pos(int sudoku[9][9], int pos[9][9][9])
     }
     zero_all_but(pos_cpy, nrow, ncol, nn);
     set_all_single_options(sudoku_cpy, pos_cpy);
-    sift_pos(sudoku_cpy, pos_cpy);
+    sift_pos(sudoku_cpy, pos_cpy, depth+1);
 
     if (solved(sudoku_cpy)) {
       cpy_sudoku(sudoku, sudoku_cpy);
       return;
     } else {
       int chng=0;
-      set_to_zero(pos, nn, nrow, ncol, chng);
+      set_to_zero(pos, nn, nrow, ncol, &chng);
     }
   }
   set_all_single_options(sudoku, pos);
 
-  sift_pos(sudoku, pos);
+  sift_pos(sudoku, pos, depth);
 }
 
 void solve_sudoku(int sudoku[9][9], int depth)
@@ -301,21 +276,7 @@ void solve_sudoku(int sudoku[9][9], int depth)
    * are not yet decided. If no solution exists
    * the function returns the input array *exactly
    * as it was* when the function was called.
-   * 
-   * The 'depth' parameter is provided in case you
-   * want to use it to help debug and trace your
-   * code. You do not need to use it if you don't
-   * want to, and the problem can be solved without
-   * using the depth value at all. 
-   * 
-   * The automated checker won't look at the depth
-   * either.
    */
-  
-  /*****
-   * TO DO:
-   * Complete this function
-   *****/  
 
   int pos[9][9][9];
   init_poss(sudoku, pos);
@@ -323,33 +284,39 @@ void solve_sudoku(int sudoku[9][9], int depth)
   int sudoku_cpy[9][9];
   cpy_sudoku(sudoku_cpy, sudoku);
 
-  sift_pos(sudoku, pos);
+  sift_pos(sudoku, pos, depth);
 
   if (!solved(sudoku)) {
+    print_sudoku(sudoku);
     cpy_sudoku(sudoku, sudoku_cpy);
   }
 }
 
-#ifndef __testing
-
 int main()
 {
-   // We'll provide you with the same test case
-   // from the Wiki, so you can check your output.
-   // But as always, be aware we will test your
-   // solution on different Sudoku puzzles.
-  
-//    int Sudoku[9][9]={
-//          {5, 3, 0, 0, 7, 0, 0, 0, 0},
-//          {6, 0, 0, 1, 9, 5, 0, 0, 0},
-//          {0, 9, 8, 0, 0, 0, 0, 6, 0},
-//          {8, 0, 0, 0, 6, 0, 0, 0, 3},
-//          {4, 0, 0, 8, 0, 3, 0, 0, 1},
-//          {7, 0, 0, 0, 2, 0, 0, 0, 6},
-//          {0, 6, 0, 0, 0, 0, 2, 8, 0},
-//          {0, 0, 0, 4, 1, 9, 0, 0, 5},
-//          {0, 0, 0, 0, 8, 0, 0, 7, 9}};
+//   int Sudoku[9][9] = {
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 },
+// { 0,0,0,0,0,0,0,0,0 }
+// };
 
+//   int Sudoku[9][9] = {
+// { 1,0,0,0,0,7,0,9,0 },
+// { 0,3,0,0,2,0,0,0,8 },
+// { 0,0,9,6,0,0,5,0,0 },
+// { 0,0,5,3,0,0,9,0,0 },
+// { 0,1,0,0,8,0,0,0,2 },
+// { 6,0,0,0,0,4,0,0,0 },
+// { 3,0,0,0,0,0,0,1,0 },
+// { 0,4,1,0,0,0,0,0,7 },
+// { 0,0,7,0,0,0,3,0,0 }
+// };
    int Sudoku[9][9]={
 {6, 0, 0, 0, 0, 8, 9, 4, 0, },
 {9, 0, 0, 0, 0, 6, 1, 0, 0, },
@@ -374,7 +341,6 @@ int main()
 // {0, 0, 0, 0, 0, 0, 0, 0, 2, }
 // };
 
-
   printf("Input puzzle is:\n");
   print_sudoku(Sudoku);
   
@@ -384,5 +350,3 @@ int main()
   print_sudoku(Sudoku);
   
 }
-
-#endif
