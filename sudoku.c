@@ -22,7 +22,7 @@ int check_sudoku(int sudoku[9][9])
    * solved. That means that each row, column, and
    * 3x3 subgrid uses each digit only once.
    * 
-   *  If *ignores* zeros, so you can use it to check
+   *  It *ignores* zeros, so you can use it to check
    * that a partial solution is valid
    */
   int row_counts;
@@ -180,8 +180,9 @@ void set_all_single_options(int sudoku[9][9], int pos[9][9][9])
 
 int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
 {
-  // returns 10 if there is all zeros in pos at that index.
-  int tempn;
+  // returns 10 if there is all zeros in every corresponding 0 entry in sudoku
+  // returns smallest nonzero pos otherwise
+  // and sets nrow, ncol, and nn to the coord of that possibility. 
   int min = 10;
   int count;
   for (int row=0; row<9; row++) {
@@ -189,7 +190,7 @@ int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
       count = 0;
       for (int n=0; n<9; n++) {
         if (pos[row][col][n] == 1) {
-          tempn = n;
+          *nn = n;
           count++;
         }
       }
@@ -197,7 +198,6 @@ int min_nonzero_pos(int pos[9][9][9], int *nrow, int *ncol, int *nn)
         min = count;
         *nrow = row;
         *ncol = col;
-        *nn = tempn;
       }
     }
   }
@@ -295,15 +295,15 @@ void solve_sudoku(int sudoku[9][9], int depth)
 int main()
 {
 //   int Sudoku[9][9] = {
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 },
-// { 0,0,0,0,0,0,0,0,0 }
+// { 1,0,0,2,0,0,0,0,0 },
+// { 0,6,5,0,0,4,8,0,0 },
+// { 0,7,0,0,0,6,9,0,0 },
+// { 0,0,4,0,0,0,0,9,0 },
+// { 0,5,0,4,0,8,7,0,0 },
+// { 0,0,0,0,3,0,0,4,0 },
+// { 0,0,0,0,0,0,6,0,0 },
+// { 0,8,0,0,0,0,0,5,7 },
+// { 0,0,6,0,0,7,0,8,9 }
 // };
 
 //   int Sudoku[9][9] = {
