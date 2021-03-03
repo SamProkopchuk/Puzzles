@@ -22,19 +22,9 @@ int check_sudoku(int sudoku[9][9])
    * solved. That means that each row, column, and
    * 3x3 subgrid uses each digit only once.
    * 
-   *  If *ignores* zeros, so you can use it to check
+   *  It *ignores* zeros, so you can use it to check
    * that a partial solution is valid
    */
-  
-  /*****
-   * TO DO:
-   * Complete this function
-   *   -- BUT ONLY IF YOU WANT TO!
-   * Our testing script only checks your Sudoku
-   * solution, if you want to solve it without
-   * using this function, or if you want to write
-   * your own helper functions, that's ok!
-   * *****/
 
   int row_counts;
   int col_counts;
@@ -86,16 +76,6 @@ int solved(int sudoku[9][9])
    * It returns 1 if the Sudoku is solved, zero
    * otherwise
    */
-  
-  /*****
-   * TO DO
-   * Complete this function
-   * BUT ONLY IF YOU WANT TO!
-   *   You can solve the Sudoku without using this function,
-   * or you can write a different helper function, whatever
-   * makes more sense to yoU! our checker won't look at this
-   * function, 
-   * ****/
   for (int row=0; row<9; row++) {
     for (int col=0; col<9; col++) {
       if (sudoku[row][col] == 0) {
@@ -311,11 +291,6 @@ void solve_sudoku(int sudoku[9][9], int depth)
    * The automated checker won't look at the depth
    * either.
    */
-  
-  /*****
-   * TO DO:
-   * Complete this function
-   *****/  
 
   int pos[9][9][9];
   init_poss(sudoku, pos);
